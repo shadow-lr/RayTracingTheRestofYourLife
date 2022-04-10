@@ -185,7 +185,9 @@ hittable_list cornell_box() {
     auto red = make_shared<lambertian>(color(.65, .05, .05));
     auto white = make_shared<lambertian>(color(.73, .73, .73));
     auto green = make_shared<lambertian>(color(.12, .45, .15));
-    auto light = make_shared<diffuse_light>(color(15, 15, 15));
+
+    auto baseColor = vec3(.34299999, .54779997, .22700010);
+    auto light = make_shared<diffuse_light>(baseColor * color(15, 15, 15));
 
     // box
     shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), white);

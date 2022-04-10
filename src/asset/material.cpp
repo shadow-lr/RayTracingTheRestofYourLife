@@ -1,13 +1,16 @@
+#include <geometry/obn.h>
 #include "asset/material.h"
 
 // 漫反射
 bool lambertian::scatter(const ray& r_in, const hit_record& rec, color& alb, ray& scattered, double& pdf) const
 {
-	// 半球上采样随机向量
-	auto direction = random_in_hemisphere(rec.normal);
+	onb uvw;
+	uvw.build_from_w(rec.normal);
+	// 半球上采样随机向量(相对z轴的)
+	auto direction = uvw.local(random_cosine_direction());
 	scattered = ray(rec.p, unit_vector(direction), r_in.time());
 	alb = albedo->value(rec.u, rec.v, rec.p);
-	pdf = 0.5 * INV_PI;
+	pdf = dot(uvw.w(), scattered.dir) * INV_PI;
 	return true;
 }
 

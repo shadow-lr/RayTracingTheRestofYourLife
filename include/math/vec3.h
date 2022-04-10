@@ -134,6 +134,17 @@ static vec3 random_in_hemisphere(const vec3 &normal) {
         return -in_unit_sphere;
 }
 
+static vec3 random_cosine_direction() {
+	auto[r1, r2] = random_point2d();
+	auto z = sqrt(1 - r2);
+
+	auto phi = 2 * PI * r1;
+	auto x = std::cos(phi) * std::sqrt(r2);
+	auto y = std::sin(phi) * std::sqrt(r2);
+
+	return vec3(x, y, z);
+}
+
 /* 随机从圆盘选一点作为lookfrom发射光线*/
 static vec3 random_in_unit_disk(){
     auto& [r1, r2] = random_point2d();
