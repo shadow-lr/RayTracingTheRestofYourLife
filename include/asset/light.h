@@ -11,7 +11,7 @@ public:
         return emit->value(u, v, p);
     }
 
-    bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const override {
+    bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered, double& pdf) const override {
         return false;
     }
 

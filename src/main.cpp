@@ -56,13 +56,17 @@ color ray_color(const ray &r, const color &background, const hittable &world, in
         return background;
 
     ray scattered;
-    color attenuation;
+//    color attenuation;
     color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
 
-    if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+    double pdf;
+    color albedo;
+
+    if (!rec.mat_ptr->scatter(r, rec, albedo, scattered, pdf))
         return emitted;
 
-    return emitted + attenuation * ray_color(scattered, background, world, depth - 1);
+    // Monte-Carlo BRDF
+    return emitted + albedo * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, depth - 1) / pdf;
 }
 
 void scan_calculate_color(int height, int width, color &background, int samples_per_pixel) {
@@ -311,7 +315,7 @@ int main() {
 
     color background(0, 0, 0);
 
-    int option = 9;
+    int option = 7;
 
     switch (option) {
         case 1:
@@ -358,8 +362,8 @@ int main() {
         case 7:
             world = cornell_box();
             aspect_ratio = 1.0;
-            image_width = 300;
-            samples_per_pixel = 200;
+            image_width = 1024;
+            samples_per_pixel = 300;
             background = color(0, 0, 0);
             lookfrom = point3(278, 278, -800);
             lookat = point3(278, 278, 0);

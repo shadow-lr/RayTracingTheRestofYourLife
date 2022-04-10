@@ -14,18 +14,22 @@ public:
         return color(0, 0, 0);
     }
 
-    /**
-     * @brief 函数简要说明-测试函数
-     * @param r_in              参数1 射线
-     * @param rec               参数2 离光线起点的距离t、撞点的坐标向量p、撞点出的法向量normal.
-     * @param attenuation       参数3 衰弱后的颜色值
-     * @param scattered         参数4 散射射线
-     *
-     * @return 返回说明
-     */
-    virtual bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const = 0;
+	/**
+	 * @brief 函数简要说明-测试函数
+	 * @param r_in              参数1 射线
+	 * @param rec               参数2 离光线起点的距离t、撞点的坐标向量p、撞点出的法向量normal.
+	 * @param attenuation       参数3 衰弱后的颜色值
+	 * @param scattered         参数4 散射射线
+	 *
+	 * @return 返回说明
+	 */
+	virtual bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, double& pdf) const = 0;
 
-    virtual ~material() {}
+	virtual double scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const
+	{
+		return 0;
+	}
+	virtual ~material() {}
 };
 
 // 兰伯特模型类
@@ -35,7 +39,9 @@ public:
 
     lambertian(shared_ptr<texture> a) : albedo(a) {}
 
-    virtual bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const override;
+    virtual bool scatter(const ray &r_in, const hit_record &rec, color &alb, ray &scattered, double& pdf) const override;
+
+	double scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const override;
 
 public:
     shared_ptr<texture> albedo;
@@ -46,7 +52,7 @@ class metal : public material {
 public:
     metal(const color &a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
-    bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const override;
+    bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered, double& pdf) const override;
 
 public:
     color albedo;
@@ -58,7 +64,7 @@ class dielectric : public material {
 public:
     dielectric(double index_of_refraction) : ir(index_of_refraction) {}
 
-    virtual bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const override;
+    virtual bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered, double& pdf) const override;
 
 public:
     // 折射率
@@ -80,7 +86,7 @@ public:
     isotropic(shared_ptr<texture> a) : albedo(a) {}
 
     // picks a uniform random direction
-    virtual bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const override {
+    virtual bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered, double& pdf) const override {
         scattered = ray(rec.p, random_in_unit_sphere(), r_in.time());
         attenuation = albedo->value(rec.u, rec.v, rec.p);
         return true;
