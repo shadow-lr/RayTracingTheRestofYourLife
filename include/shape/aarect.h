@@ -66,6 +66,8 @@ public:
         rec.u = (x - x0) / (x1 - x0);
         rec.v = (z - z0) / (z1 - z0);
         rec.t = t;
+
+        // 默认y轴向上的法线
         auto outward_normal = vec3(0, 1, 0);
         rec.set_face_normal(r, outward_normal);
         rec.mat_ptr = mp;
