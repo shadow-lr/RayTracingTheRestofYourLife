@@ -28,3 +28,22 @@ public:
 public:
 	onb uvw;
 };
+
+class hittable_pdf : public pdf {
+public:
+	hittable_pdf(shared_ptr<hittable> p, const point3& origin) : ptr(p), o(origin) {}
+
+	~hittable_pdf() override {}
+
+	virtual double value(const vec3 &direction) const override {
+		return ptr->pdf_value(o, direction);
+	}
+
+	vec3 generate() const override {
+		return ptr->random(o);
+	}
+
+public:
+	point3 o;
+	shared_ptr<hittable> ptr;
+};

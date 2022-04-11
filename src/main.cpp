@@ -46,7 +46,7 @@ camera cam;
 std::vector<std::vector<color>> color_table(image_height + 1, std::vector<color>(image_width + 1));
 
 // ray recursion
-color ray_color(const ray &r, const color &background, const hittable &world, int depth) {
+color ray_color(const ray &r, const color &background, const hittable &world, shared_ptr<hittable>& lights, int depth) {
     hit_record rec;
 
     // If we've exceeded the ray bounce limit, no more light is gathered.
@@ -83,22 +83,26 @@ color ray_color(const ray &r, const color &background, const hittable &world, in
 //	pdf = distance_squared / (light_cosine * light_area);
 //	scattered = ray(rec.p, to_light, r.time());
 
-	cosine_pdf p(rec.normal);
-	scattered = ray(rec.p, p.generate(), r.time());
-	pdf = p.value(scattered.direction());
+	hittable_pdf light_pdf(lights, rec.p);
+	scattered = ray(rec.p, light_pdf.generate(), r.time());
+	pdf = light_pdf.value(scattered.direction());
+
+//	cosine_pdf p(rec.normal);
+//	scattered = ray(rec.p, p.generate(), r.time());
+//	pdf = p.value(scattered.direction());
 
     // Monte-Carlo BRDF
-    return emitted + albedo * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, depth - 1) / pdf;
+    return emitted + albedo * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, lights, depth - 1) / pdf;
 }
 
-void scan_calculate_color(int height, int width, color &background, int samples_per_pixel) {
+void scan_calculate_color(int height, int width, color &background, int samples_per_pixel, shared_ptr<hittable>& lights) {
     int i = width, j = height;
     color pixel_color(0, 0, 0);
     for (int s = 0; s < samples_per_pixel; ++s) {
         double u = (i + random_double()) / (image_width - 1.0);
         double v = (j + random_double()) / (image_height - 1.0);
         ray r = cam.get_ray(u, v);
-        pixel_color += ray_color(r, background, world, max_depth);
+        pixel_color += ray_color(r, background, world, lights, max_depth);
     }
     //    write_color(std::cout, pixel_color, samples_per_pixel);
     write_color_table(pixel_color, samples_per_pixel, color_table, j, i);
@@ -343,8 +347,11 @@ int main() {
 
     int option = 7;
 
-    switch (option) {
-        case 1:
+	shared_ptr<hittable> lights =
+		make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>());
+
+	switch (option) {
+		case 1:
             world = random_scene();
             lookfrom = point3(13, 2, 3);
             lookat = point3(0, 0, 0);
@@ -437,7 +444,7 @@ int main() {
 #pragma omp parallel for
     for (int j = image_height - 1; j >= 0; --j) {
         for (int i = 0; i < image_width; ++i) {
-            scan_calculate_color(j, i, background, samples_per_pixel);
+            scan_calculate_color(j, i, background, samples_per_pixel, lights);
         }
 
         omp_set_lock(&lock);
