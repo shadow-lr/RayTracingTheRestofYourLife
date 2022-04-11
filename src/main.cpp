@@ -83,13 +83,20 @@ color ray_color(const ray &r, const color &background, const hittable &world, sh
 //	pdf = distance_squared / (light_cosine * light_area);
 //	scattered = ray(rec.p, to_light, r.time());
 
-	hittable_pdf light_pdf(lights, rec.p);
-	scattered = ray(rec.p, light_pdf.generate(), r.time());
-	pdf = light_pdf.value(scattered.direction());
+//	hittable_pdf light_pdf(lights, rec.p);
+//	scattered = ray(rec.p, light_pdf.generate(), r.time());
+//	pdf = light_pdf.value(scattered.direction());
 
 //	cosine_pdf p(rec.normal);
 //	scattered = ray(rec.p, p.generate(), r.time());
 //	pdf = p.value(scattered.direction());
+
+	auto p0 = make_shared<hittable_pdf>(lights, rec.p);
+	auto p1 = make_shared<cosine_pdf>(rec.normal);
+
+	mixture_pdf mix_pdf(p0, p1);
+	scattered = ray(rec.p, mix_pdf.generate(), r.time());
+	pdf = mix_pdf.value(scattered.direction());
 
     // Monte-Carlo BRDF
     return emitted + albedo * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, lights, depth - 1) / pdf;
