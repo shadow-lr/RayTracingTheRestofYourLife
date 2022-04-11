@@ -65,6 +65,23 @@ color ray_color(const ray &r, const color &background, const hittable &world, in
     if (!rec.mat_ptr->scatter(r, rec, albedo, scattered, pdf))
         return emitted;
 
+	auto on_light = point3(random_double(213, 343), 554, random_double(227, 332));
+	auto to_light = on_light - rec.p;
+	auto distance_squared = to_light.length_squared();
+	to_light = unit_vector(to_light);
+
+	if (dot(to_light, rec.normal) < 0)
+		return emitted;
+
+	double light_area = (343 - 213) * (332 - 227);
+	// TODO: hard code
+	auto light_cosine = std::fabs(to_light.y());
+	if (light_cosine < 0.000001)
+		return emitted;
+
+	pdf = distance_squared / (light_cosine * light_area);
+	scattered = ray(rec.p, to_light, r.time());
+
     // Monte-Carlo BRDF
     return emitted + albedo * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, depth - 1) / pdf;
 }
@@ -186,7 +203,8 @@ hittable_list cornell_box() {
     auto white = make_shared<lambertian>(color(.73, .73, .73));
     auto green = make_shared<lambertian>(color(.12, .45, .15));
 
-    auto baseColor = vec3(.34299999, .54779997, .22700010);
+//    auto baseColor = vec3(.34299999, .54779997, .22700010);
+    auto baseColor = vec3(1.0);
     auto light = make_shared<diffuse_light>(baseColor * color(15, 15, 15));
 
     // box
@@ -364,7 +382,7 @@ int main() {
         case 7:
             world = cornell_box();
             aspect_ratio = 1.0;
-            image_width = 1024;
+            image_width = 600;
             samples_per_pixel = 300;
             background = color(0, 0, 0);
             lookfrom = point3(278, 278, -800);
