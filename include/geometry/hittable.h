@@ -22,6 +22,7 @@ struct hit_record {
     // 该决定取决于您是要在几何相交时还是在着色时确定表面的侧面，如果反射与入射反向front_face = true
     // 反射：font_face true 折射：front_face false
     // normal：朝外
+    // r.direction和朝外normal在半球以外的话，则front_face = false
     inline void set_face_normal(const ray &r, const vec3 &outward_normal) {
         front_face = dot(r.direction(), outward_normal) < 0;
         normal = front_face ? outward_normal : -outward_normal;
@@ -36,4 +37,24 @@ public:
 
     // 相交判断
     virtual bool bounding_box(double time0, double time1, aabb &output_box) const = 0;
+};
+
+// make normals point in the −y direction
+class flip_face : public hittable {
+public:
+	flip_face(shared_ptr<hittable> p) : ptr(p) {}
+private:
+
+	virtual bool hit(const ray &r, double t_min, double t_max, hit_record &rec) const override {
+		if (!ptr->hit(r, t_min, t_max, rec))
+			return false;
+
+		rec.front_face = !rec.front_face;
+		return true;
+	}
+	bool bounding_box(double time0, double time1, aabb &output_box) const override {
+		return ptr->bounding_box(time0, time1, output_box);
+	}
+public:
+	shared_ptr<hittable> ptr;
 };

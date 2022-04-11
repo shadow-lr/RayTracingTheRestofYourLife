@@ -10,7 +10,8 @@ struct hit_record;
 class material {
 public:
     // 对于可自发光的材质(light)
-    virtual color emitted(double u, double v, const point3 &p) const {
+    virtual color emitted(const ray& r_in, const hit_record& rec,
+						  double u, double v, const point3 &p) const {
         return color(0, 0, 0);
     }
 
