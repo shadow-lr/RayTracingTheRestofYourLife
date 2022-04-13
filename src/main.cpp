@@ -53,30 +53,6 @@ color ray_color(const ray &r, const color &background, const hittable &world, sh
 	if (!world.hit(r, 0.001, infinity, rec))
 		return background;
 
-//	double light_area = (343 - 213) * (332 - 227);
-//	// TODO: hard code
-//	auto light_cosine = std::fabs(to_light.y());
-//	if (light_cosine < 0.000001)
-//		return emitted;
-//
-//	pdf = distance_squared / (light_cosine * light_area);
-//	scattered = ray(rec.p, to_light, r.time());
-
-//	hittable_pdf light_pdf(lights, rec.p);
-//	scattered = ray(rec.p, light_pdf.generate(), r.time());
-//	pdf = light_pdf.value(scattered.direction());
-
-//	cosine_pdf p(rec.normal);
-//	scattered = ray(rec.p, p.generate(), r.time());
-//	pdf = p.value(scattered.direction());
-
-//	auto p0 = make_shared<hittable_pdf>(lights, rec.p);
-//	auto p1 = make_shared<cosine_pdf>(rec.normal);
-//
-//	mixture_pdf mix_pdf(p0, p1);
-//	scattered = ray(rec.p, mix_pdf.generate(), r.time());
-//	pdf = mix_pdf.value(scattered.direction());
-//
 	scatter_record srec;
 	color emitted = rec.mat_ptr->emitted(r, rec, rec.u, rec.v, rec.p);
 	if (!rec.mat_ptr->scatter(r, rec, srec))
@@ -165,14 +141,14 @@ int main() {
 	int option = 7;
 
 	auto lights = make_shared<hittable_list>();
-//	lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
+	lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
 	lights->add(make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
 
 	switch (option) {
 		case 7:world = cornell_box();
 			aspect_ratio = 1.0;
-			image_width = 300;
-			samples_per_pixel = 100;
+			image_width = 1024;
+			samples_per_pixel = 600;
 			background = color(0, 0, 0);
 			lookfrom = point3(278, 278, -800);
 			lookat = point3(278, 278, 0);
