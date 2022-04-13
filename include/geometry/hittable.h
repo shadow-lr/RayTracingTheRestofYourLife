@@ -44,7 +44,7 @@ public:
 	}
 
 	virtual vec3 random(const vec3 &o) const {
-		return vec3(0, 0, 0);
+		return vec3(1, 0, 0);
 	}
 };
 

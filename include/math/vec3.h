@@ -118,6 +118,18 @@ static vec3 random_in_unit_sphere_reject() {
 	}
 }
 
+inline vec3 random_to_sphere(double radius, double distance_squared) {
+	auto r1 = random_double();
+	auto r2 = random_double();
+	auto z = 1 + r2 * (sqrt(1 - radius * radius / distance_squared) - 1);
+
+	auto phi = TWO_PI * r1;
+	auto x = cos(phi) * sqrt(1 - z * z);
+	auto y = sin(phi) * sqrt(1 - z * z);
+
+	return vec3(x, y, z);
+}
+
 /* 随机后并且归一化 获得随机向量方向的 单位向量*/
 static vec3 random_unit_vector() {
     return unit_vector(random_in_unit_sphere());

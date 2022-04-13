@@ -16,8 +16,10 @@ public:
     hittable_list(shared_ptr<hittable> object) { add(object); }
 
     void clear() { objects.clear(); }
+	double pdf_value(const point3 &o, const vec3 &v) const override;
+	vec3 random(const vec3 &o) const override;
 
-    void add(shared_ptr<hittable> object) { objects.push_back(object); }
+	void add(shared_ptr<hittable> object) { objects.push_back(object); }
 
     virtual bool hit(const ray &r, double t_min, double t_max, hit_record &rec) const override;
 
@@ -26,3 +28,4 @@ public:
 public:
     std::vector<shared_ptr<hittable>> objects;
 };
+

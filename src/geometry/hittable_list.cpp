@@ -1,7 +1,3 @@
-//
-// Created by Fgly on 2022/4/7.
-//
-
 #include "geometry/hittable_list.h"
 
 /* 遍历objects中所有对象，与当前的射线进行相交检测*/
@@ -38,4 +34,20 @@ bool hittable_list::bounding_box(double time0, double time1, aabb &output_box) c
         first_box = false;
     }
     return true;
+}
+
+double hittable_list::pdf_value(const point3& o, const vec3& v) const {
+	auto weight = 1.0/objects.size();
+	auto sum = 0.0;
+
+	for (const auto& object : objects)
+		sum += weight * object->pdf_value(o, v);
+
+	return sum;
+}
+
+
+vec3 hittable_list::random(const vec3 &o) const {
+	auto int_size = static_cast<int>(objects.size());
+	return objects[random_int(0, int_size-1)]->random(o);
 }

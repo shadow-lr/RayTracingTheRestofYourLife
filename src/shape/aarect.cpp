@@ -52,7 +52,8 @@ double xz_rect::pdf_value(const point3 &o, const vec3 &v) const {
 
 	auto normalize_v = unit_vector(v);
 	auto area = (x1 - x0) * (z1 - z0);
-	auto distance_squared = (rec.p - o).length_squared();
+//	auto distance_squared = (rec.p - o).length_squared();
+	auto distance_squared = rec.t * rec.t * v.length_squared();
 	auto cosine = fabs(dot(normalize_v, rec.normal));
 
 	return distance_squared / (cosine * area);

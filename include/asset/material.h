@@ -1,17 +1,24 @@
 #pragma once
 
+#include <geometry/pdf.h>
 #include "rtweekend.h"
 #include "geometry/hittable.h"
 #include "texture.h"
 
 struct hit_record;
 
+struct scatter_record {
+	ray specular_ray;
+	bool is_specular;
+	color attenuation;
+	shared_ptr<pdf> pdf_ptr;
+};
+
 // 告诉射线如何与表面相互作用
 class material {
 public:
     // 对于可自发光的材质(light)
-    virtual color emitted(const ray& r_in, const hit_record& rec,
-						  double u, double v, const point3 &p) const {
+    virtual color emitted(const ray& r_in, const hit_record& rec, double u, double v, const point3 &p) const {
         return color(0, 0, 0);
     }
 
@@ -24,10 +31,11 @@ public:
 	 *
 	 * @return 返回说明
 	 */
-	virtual bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, double& pdf) const = 0;
+	virtual bool scatter(const ray &r_in, const hit_record &rec, scatter_record &srec) const {
+		return false;
+	}
 
-	virtual double scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const
-	{
+	virtual double scattering_pdf(const ray &r_in, const hit_record &rec, const ray &scattered) const {
 		return 0;
 	}
 	virtual ~material() {}
@@ -40,7 +48,7 @@ public:
 
     lambertian(shared_ptr<texture> a) : albedo(a) {}
 
-    virtual bool scatter(const ray &r_in, const hit_record &rec, color &alb, ray &scattered, double& pdf) const override;
+    virtual bool scatter(const ray &r_in, const hit_record &rec, scatter_record& srec) const override;
 
 	double scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const override;
 
@@ -53,7 +61,7 @@ class metal : public material {
 public:
     metal(const color &a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
-    bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered, double& pdf) const override;
+    bool scatter(const ray &r_in, const hit_record &rec, scatter_record& srec) const override;
 
 public:
     color albedo;
@@ -65,7 +73,7 @@ class dielectric : public material {
 public:
     dielectric(double index_of_refraction) : ir(index_of_refraction) {}
 
-    virtual bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered, double& pdf) const override;
+    virtual bool scatter(const ray &r_in, const hit_record &rec, scatter_record& srec) const override;
 
 public:
     // 折射率
@@ -87,9 +95,9 @@ public:
     isotropic(shared_ptr<texture> a) : albedo(a) {}
 
     // picks a uniform random direction
-    virtual bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered, double& pdf) const override {
-        scattered = ray(rec.p, random_in_unit_sphere(), r_in.time());
-        attenuation = albedo->value(rec.u, rec.v, rec.p);
+    virtual bool scatter(const ray &r_in, const hit_record &rec, scatter_record& srec) const override {
+//        scattered = ray(rec.p, random_in_unit_sphere(), r_in.time());
+//        attenuation = albedo->value(rec.u, rec.v, rec.p);
         return true;
     }
 
